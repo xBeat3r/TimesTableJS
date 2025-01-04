@@ -128,7 +128,7 @@ function getThreeEnv(input: Input): ThreeEnv {
     const lines = getLines(getGeometry(0), material);
     scene.add(lines);
 
-    const composer = getComposer({ renderer, scene, camera });
+    const composer = getComposer({ renderer, scene, camera }, input);
 
     return {
         renderer,
@@ -141,8 +141,11 @@ function getThreeEnv(input: Input): ThreeEnv {
     };
 }
 
-export function getComposer({ renderer, scene, camera }: Pick<ThreeEnv, "renderer" | "scene" | "camera">) {
-    const renderTarget = getRenderTarget(renderer, 0, "UnsignedByte");
+export function getComposer(
+    { renderer, scene, camera }: Pick<ThreeEnv, "renderer" | "scene" | "camera">,
+    { samples, renderTargetType }: Pick<Input, "samples" | "renderTargetType">,
+) {
+    const renderTarget = getRenderTarget(renderer, samples, renderTargetType);
 
     const composer = new EffectComposer(renderer, renderTarget);
 
@@ -228,8 +231,8 @@ export function getRenderTarget(
     const renderTarget = new THREE.WebGLRenderTarget(renderTargetSize.width, renderTargetSize.height, {
         format: THREE.RGBAFormat,
         type,
+        samples,
     });
-    renderTarget.samples = samples;
     return renderTarget;
 }
 

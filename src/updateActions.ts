@@ -1,12 +1,4 @@
-import type {
-    CameraType,
-    CameraView,
-    ColorMethod,
-    LineMaterial,
-    RenderTargetTypeLabel,
-    ThreeEnv,
-    ToneMappingLabel,
-} from "./interfaces";
+import assertNever from "assert-never";
 import * as THREE from "three";
 import {
     getCamera,
@@ -17,7 +9,15 @@ import {
     getRenderTarget,
     getRenderTargetSize,
 } from "./index";
-import assertNever from "assert-never";
+import type {
+    CameraView,
+    ColorMethod,
+    Input,
+    LineMaterial,
+    RenderTargetTypeLabel,
+    ThreeEnv,
+    ToneMappingLabel,
+} from "./interfaces";
 
 export function updateColorMethod(material: LineMaterial, colorMethod: ColorMethod) {
     switch (colorMethod) {
@@ -94,7 +94,6 @@ export function updateRendererSize(threeEnv: ThreeEnv, width: number, height: nu
     const camera = threeEnv.camera;
 
     if (camera instanceof THREE.OrthographicCamera) {
-        console.log(camera);
         if (aspectRatio > 1) {
             camera.left = -aspectRatio;
             camera.right = aspectRatio;
@@ -112,6 +111,7 @@ export function updateRendererSize(threeEnv: ThreeEnv, width: number, height: nu
         camera.aspect = aspectRatio;
         camera.updateProjectionMatrix();
     }
+    threeEnv.renderer.setPixelRatio(window.devicePixelRatio);
     threeEnv.renderer.setSize(width, height);
 
     const renderTargetSize = getRenderTargetSize(threeEnv.renderer);
@@ -138,14 +138,14 @@ export function updateRenderTarget(
 
 export function updateCameraType(
     threeEnv: Pick<ThreeEnv, "controls" | "renderer" | "camera" | "composer" | "scene">,
-    cameraType: CameraType,
+    { cameraType, renderTargetType, samples }: Pick<Input, "cameraType" | "renderTargetType" | "samples">,
 ) {
     threeEnv.controls.dispose();
     threeEnv.composer.dispose();
 
     threeEnv.camera = getCamera(cameraType);
     threeEnv.controls = getControls(threeEnv);
-    threeEnv.composer = getComposer(threeEnv);
+    threeEnv.composer = getComposer(threeEnv, { renderTargetType, samples });
 }
 
 export function updateCameraView(threeEnv: ThreeEnv, cameraView: CameraView) {

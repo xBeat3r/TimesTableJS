@@ -82,40 +82,33 @@ export class RenderController {
     private update() {
         if (this.needsUpdate("cameraType")) {
             this.threeEnv.controls.removeEventListener("change", this.controlsEventListener);
-            updateCameraType(this.threeEnv, this.input.cameraType);
+            updateCameraType(this.threeEnv, this.input);
             this.threeEnv.controls.addEventListener("change", this.controlsEventListener);
-        }
-        if (this.needsUpdate("cameraType") || this.needsUpdate("samples") || this.needsUpdate("renderTargetType")) {
-            updateRenderTarget(this.threeEnv, this.input.samples, this.input.renderTargetType);
-        }
-
-        if (this.needsUpdate("cameraType") || this.needsUpdate("cameraView") || this.needsUpdate("resetCamera")) {
-            updateCameraView(this.threeEnv, this.input.cameraView);
         }
         if (this.needsUpdate("cameraType") || this.needsUpdate("resize")) {
             updateRendererSize(this.threeEnv, window.innerWidth, window.innerHeight);
         }
-
+        if (this.needsUpdate("cameraType") || this.needsUpdate("samples") || this.needsUpdate("renderTargetType")) {
+            updateRenderTarget(this.threeEnv, this.input.samples, this.input.renderTargetType);
+        }
+        if (this.needsUpdate("cameraType") || this.needsUpdate("cameraView") || this.needsUpdate("resetCamera")) {
+            updateCameraView(this.threeEnv, this.input.cameraView);
+        }
         if (this.needsUpdate("totalLines")) {
             updateTotalLines(this.threeEnv, this.input.totalLines);
         }
-
         if (this.needsUpdate("multiplier")) {
             updateMultiplier(this.threeEnv.material, this.input.multiplier);
         }
-
         if (this.needsUpdate("colorMethod")) {
             updateColorMethod(this.threeEnv.material, this.input.colorMethod);
         }
-
         if (this.needsUpdate("opacity")) {
             updateOpacity(this.threeEnv.material, this.input.opacity);
         }
-
         if (this.needsUpdate("toneMapping")) {
             updateToneMapping(this.threeEnv, this.input.toneMapping);
         }
-
         if (this.needsUpdate("toneMappingExposure")) {
             updateToneMappingExposure(this.threeEnv, this.input.toneMappingExposure);
         }
