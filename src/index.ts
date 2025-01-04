@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { EffectComposer, MapControls, OutputPass, RenderPass } from "three/addons";
 import * as Gui from "./gui";
 import type {
+    CameraType,
     Input,
     LineMaterial,
     LineMaterialUniforms,
@@ -96,20 +97,16 @@ function initRenderContainer(renderer: THREE.WebGLRenderer): RenderContainer {
 /**
  * Static initialization of render environment
  */
-function getThreeEnv(_input: Input): ThreeEnv {
+function getThreeEnv(input: Input): ThreeEnv {
     const renderer = new THREE.WebGLRenderer({ antialias: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
-    camera.position.setY(10);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    const camera = getCamera(input.cameraType);
 
-    const controls = new MapControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.maxTargetRadius = 1;
+    const controls = getControls({ camera, renderer });
 
     const material = new THREE.ShaderMaterial({
         uniforms: {
@@ -131,21 +128,7 @@ function getThreeEnv(_input: Input): ThreeEnv {
     const lines = getLines(getGeometry(0), material);
     scene.add(lines);
 
-    // TODO: add toggle
-    const size = 10;
-    const divisions = 10;
-    const gridHelper = new THREE.GridHelper(size, divisions);
-    scene.add(gridHelper);
-
-    const renderTarget = getRenderTarget(renderer, 0, "UnsignedByte");
-
-    const composer = new EffectComposer(renderer, renderTarget);
-
-    const renderPass = new RenderPass(scene, camera);
-    composer.addPass(renderPass);
-
-    const outputPass = new OutputPass();
-    composer.addPass(outputPass);
+    const composer = getComposer({ renderer, scene, camera });
 
     return {
         renderer,
@@ -156,6 +139,41 @@ function getThreeEnv(_input: Input): ThreeEnv {
         lines,
         composer,
     };
+}
+
+export function getComposer({ renderer, scene, camera }: Pick<ThreeEnv, "renderer" | "scene" | "camera">) {
+    const renderTarget = getRenderTarget(renderer, 0, "UnsignedByte");
+
+    const composer = new EffectComposer(renderer, renderTarget);
+
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const outputPass = new OutputPass();
+    composer.addPass(outputPass);
+    return composer;
+}
+
+export function getCamera(cameraType: CameraType): THREE.Camera {
+    let camera: THREE.Camera;
+    if (cameraType === "Orthographic") {
+        camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+    } else if (cameraType === "Perspective") {
+        camera = new THREE.PerspectiveCamera();
+    } else {
+        assertNever(cameraType);
+    }
+
+    return camera;
+}
+
+export function getControls({ camera, renderer }: Pick<ThreeEnv, "camera" | "renderer">) {
+    const controls = new MapControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.maxTargetRadius = 1;
+    controls.listenToKeyEvents(window);
+    controls.zoomToCursor = true;
+    return controls;
 }
 
 export function getGeometry(totalLines: number): THREE.BufferGeometry {

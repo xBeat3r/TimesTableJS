@@ -19,8 +19,8 @@ export type LineMaterial = THREE.ShaderMaterial & {
 export interface ThreeEnv {
     renderer: THREE.WebGLRenderer;
     readonly scene: THREE.Scene;
-    readonly camera: THREE.OrthographicCamera;
-    readonly controls: MapControls;
+    camera: THREE.Camera;
+    controls: MapControls;
     readonly material: LineMaterial;
     lines: THREE.LineSegments;
     composer: EffectComposer;
@@ -36,6 +36,7 @@ export type CameraView = "top" | "front" | "bottom";
 export interface Input {
     totalLines: number;
     multiplier: number;
+    // TODO: height
     animate: boolean;
     multiplierIncrement: number;
     opacity: number;

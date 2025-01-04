@@ -99,14 +99,4 @@ export function initGUI(input: Input, renderController: RenderController, threeE
     });
 
     window.addEventListener("resize", () => renderController.requestRender("resize"));
-
-    threeEnv.controls.addEventListener("change", (e) => {
-        renderController.requestRender("controls");
-
-        // camPosXController.setValue(threeEnv.camera.position.x);
-        // camPosYController.setValue(threeEnv.camera.position.z);
-        // camZoomController.setValue(threeEnv.camera.zoom);
-
-        console.log(e, threeEnv.camera.position, threeEnv.camera.zoom);
-    });
 }

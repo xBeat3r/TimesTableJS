@@ -1,6 +1,22 @@
-import type { ColorMethod, LineMaterial, RenderTargetTypeLabel, ThreeEnv, ToneMappingLabel } from "./interfaces";
+import type {
+    CameraType,
+    CameraView,
+    ColorMethod,
+    LineMaterial,
+    RenderTargetTypeLabel,
+    ThreeEnv,
+    ToneMappingLabel,
+} from "./interfaces";
 import * as THREE from "three";
-import { getGeometry, getLines, getRenderTarget, getRenderTargetSize } from "./index";
+import {
+    getCamera,
+    getComposer,
+    getControls,
+    getGeometry,
+    getLines,
+    getRenderTarget,
+    getRenderTargetSize,
+} from "./index";
 import assertNever from "assert-never";
 
 export function updateColorMethod(material: LineMaterial, colorMethod: ColorMethod) {
@@ -72,25 +88,30 @@ export function updateToneMappingExposure(threeEnv: ThreeEnv, toneMappingExposur
     threeEnv.renderer.toneMappingExposure = toneMappingExposure;
 }
 
-export function updateRendererSize(threeEnv: ThreeEnv, height: number, width: number) {
+export function updateRendererSize(threeEnv: ThreeEnv, width: number, height: number) {
     const aspectRatio = width / height;
 
     const camera = threeEnv.camera;
 
-    if (aspectRatio > 1) {
-        camera.left = -aspectRatio;
-        camera.right = aspectRatio;
-        camera.top = 1;
-        camera.bottom = -1;
-    } else {
-        camera.left = -1;
-        camera.right = 1;
-        camera.top = Math.pow(aspectRatio, -1);
-        camera.bottom = -Math.pow(aspectRatio, -1);
+    if (camera instanceof THREE.OrthographicCamera) {
+        console.log(camera);
+        if (aspectRatio > 1) {
+            camera.left = -aspectRatio;
+            camera.right = aspectRatio;
+            camera.top = 1;
+            camera.bottom = -1;
+        } else {
+            camera.left = -1;
+            camera.right = 1;
+            camera.top = Math.pow(aspectRatio, -1);
+            camera.bottom = -Math.pow(aspectRatio, -1);
+        }
+
+        camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.PerspectiveCamera) {
+        camera.aspect = aspectRatio;
+        camera.updateProjectionMatrix();
     }
-
-    threeEnv.camera.updateProjectionMatrix();
-
     threeEnv.renderer.setSize(width, height);
 
     const renderTargetSize = getRenderTargetSize(threeEnv.renderer);
@@ -107,6 +128,39 @@ export function updateTotalLines(threeEnv: ThreeEnv, totalLines: number) {
     threeEnv.scene.add(threeEnv.lines);
 }
 
-export function updateRenderTarget(threeEnv: ThreeEnv, samples: number, renderTargetType: RenderTargetTypeLabel) {
+export function updateRenderTarget(
+    threeEnv: Pick<ThreeEnv, "composer" | "renderer">,
+    samples: number,
+    renderTargetType: RenderTargetTypeLabel,
+) {
     threeEnv.composer.reset(getRenderTarget(threeEnv.renderer, samples, renderTargetType));
+}
+
+export function updateCameraType(
+    threeEnv: Pick<ThreeEnv, "controls" | "renderer" | "camera" | "composer" | "scene">,
+    cameraType: CameraType,
+) {
+    threeEnv.controls.dispose();
+    threeEnv.composer.dispose();
+
+    threeEnv.camera = getCamera(cameraType);
+    threeEnv.controls = getControls(threeEnv);
+    threeEnv.composer = getComposer(threeEnv);
+}
+
+export function updateCameraView(threeEnv: ThreeEnv, cameraView: CameraView) {
+    const distance = threeEnv.camera instanceof THREE.OrthographicCamera ? 10 : Math.PI;
+
+    if (cameraView === "top") {
+        threeEnv.controls.position0.set(0, distance, 0);
+    } else if (cameraView === "front") {
+        threeEnv.controls.position0.set(0, 0, distance);
+    } else if (cameraView === "bottom") {
+        threeEnv.controls.position0.set(0, -distance, 0);
+    } else {
+        assertNever(cameraView);
+    }
+    threeEnv.controls.target0.set(0, 0, 0);
+    threeEnv.controls.zoom0 = 1;
+    threeEnv.controls.reset();
 }

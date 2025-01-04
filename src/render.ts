@@ -1,7 +1,7 @@
 import type { Input, RenderContainer, ThreeEnv, UpdateSource } from "./interfaces";
 import {
-    updateCameraPosition,
-    updateCameraZoom,
+    updateCameraType,
+    updateCameraView,
     updateColorMethod,
     updateMultiplier,
     updateOpacity,
@@ -12,10 +12,14 @@ import {
     updateTotalLines,
 } from "./updateActions";
 
+// TODO: evaluate React Three Fiber
 export class RenderController {
     private frameRequested = false;
     private postRenderCallbacks: Set<() => void>;
     private isInitialRender = true;
+    private controlsEventListener = () => {
+        this.requestRender("controls");
+    };
 
     private readonly updateSources: Set<UpdateSource>;
     private readonly threeEnv: ThreeEnv;
@@ -28,6 +32,8 @@ export class RenderController {
         this.renderContainer = renderContainer;
         this.updateSources = new Set();
         this.postRenderCallbacks = new Set();
+
+        this.threeEnv.controls.addEventListener("change", this.controlsEventListener);
     }
 
     public requestRender(source: UpdateSource | "init", postRenderCallback?: () => void) {
@@ -48,9 +54,6 @@ export class RenderController {
     private render() {
         this.frameRequested = false;
 
-        // TODO: check return
-        //  dampening requires multiple updates
-        // TODO: sync with ui camera controls
         this.threeEnv.controls.update();
 
         this.update();
@@ -77,12 +80,20 @@ export class RenderController {
     }
 
     private update() {
-        if (this.needsUpdate("resize")) {
-            updateRendererSize(this.threeEnv, window.innerHeight, window.innerWidth);
+        if (this.needsUpdate("cameraType")) {
+            this.threeEnv.controls.removeEventListener("change", this.controlsEventListener);
+            updateCameraType(this.threeEnv, this.input.cameraType);
+            this.threeEnv.controls.addEventListener("change", this.controlsEventListener);
+        }
+        if (this.needsUpdate("cameraType") || this.needsUpdate("samples") || this.needsUpdate("renderTargetType")) {
+            updateRenderTarget(this.threeEnv, this.input.samples, this.input.renderTargetType);
         }
 
-        if (this.needsUpdate("samples") || this.needsUpdate("renderTargetType")) {
-            updateRenderTarget(this.threeEnv, this.input.samples, this.input.renderTargetType);
+        if (this.needsUpdate("cameraType") || this.needsUpdate("cameraView") || this.needsUpdate("resetCamera")) {
+            updateCameraView(this.threeEnv, this.input.cameraView);
+        }
+        if (this.needsUpdate("cameraType") || this.needsUpdate("resize")) {
+            updateRendererSize(this.threeEnv, window.innerWidth, window.innerHeight);
         }
 
         if (this.needsUpdate("totalLines")) {
@@ -108,7 +119,5 @@ export class RenderController {
         if (this.needsUpdate("toneMappingExposure")) {
             updateToneMappingExposure(this.threeEnv, this.input.toneMappingExposure);
         }
-
-        // TODO: cameraType, cameraView, resetCamera
     }
 }
