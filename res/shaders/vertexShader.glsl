@@ -15,20 +15,32 @@ vec3 hsv2rgb(vec3 c);
 void main() {
   vec2 circleCord;
 
-  float index = position.x;
-  vIndex = index;
-  float isStartIndicator = position.y;
-  bool isStart = isStartIndicator == 0.0;
-  vLinePosition = isStartIndicator;
+  int intIndex = gl_VertexID / 2;
+  float index = float(intIndex);
+
+  bool isStart = gl_VertexID % 2 == 0;
   if (isStart) {
     circleCord = getCircleCord(index, total);
   } else {
     circleCord = getCircleCord(index * multiplier, total);
   }
 
-  gl_Position = projectionMatrix *
-                modelViewMatrix *
-  vec4(circleCord, 0.0, 1.0);
+  // TODO: Expose Y (height) controls
+  // float height = 0.0;
+  float height = isStart ? -1.0 : 1.0;
+  // float height = -1.0 + myDistance(index, total, multiplier) * 2.0;
+  // float height = isStart ? -1.0 : myDistance(index, total, multiplier);
+  // float height = float(gl_VertexID);
+
+  gl_Position = 
+    projectionMatrix *
+    modelViewMatrix *
+    vec4(
+      circleCord.x,
+      height,
+      circleCord.y,
+      1.0
+    );
 
   // colorMethod switch
   if (colorMethod == 0) {

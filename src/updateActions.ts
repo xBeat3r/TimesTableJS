@@ -1,7 +1,23 @@
-import type { ColorMethod, LineMaterial, ThreeEnv } from "./interfaces";
-import * as THREE from "three";
-import { getGeometry, getLines } from "./index";
 import assertNever from "assert-never";
+import * as THREE from "three";
+import {
+    getCamera,
+    getComposer,
+    getControls,
+    getGeometry,
+    getLines,
+    getRenderTarget,
+    getRenderTargetSize,
+} from "./index";
+import type {
+    CameraView,
+    ColorMethod,
+    Input,
+    LineMaterial,
+    RenderTargetTypeLabel,
+    ThreeEnv,
+    ToneMappingLabel,
+} from "./interfaces";
 
 export function updateColorMethod(material: LineMaterial, colorMethod: ColorMethod) {
     switch (colorMethod) {
@@ -40,40 +56,62 @@ export function updateOpacity(material: LineMaterial, opacity: number) {
     material.needsUpdate = true;
 }
 
-export function updateNoiseStrength(material: LineMaterial, noiseStrength: number) {
-    material.uniforms.noiseStrength.value = noiseStrength;
-    material.needsUpdate = true;
+export function updateToneMapping(threeEnv: ThreeEnv, toneMapping: ToneMappingLabel) {
+    switch (toneMapping) {
+        case "No":
+            threeEnv.renderer.toneMapping = THREE.NoToneMapping;
+            break;
+        case "Linear":
+            threeEnv.renderer.toneMapping = THREE.LinearToneMapping;
+            break;
+        case "Reinhard":
+            threeEnv.renderer.toneMapping = THREE.ReinhardToneMapping;
+            break;
+        case "Cineon":
+            threeEnv.renderer.toneMapping = THREE.CineonToneMapping;
+            break;
+        case "ACESFilmic":
+            threeEnv.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            break;
+        case "AgX":
+            threeEnv.renderer.toneMapping = THREE.AgXToneMapping;
+            break;
+        case "Neutral":
+            threeEnv.renderer.toneMapping = THREE.NeutralToneMapping;
+            break;
+        default:
+            assertNever(toneMapping);
+    }
 }
 
-export function updateCameraPosition(camera: THREE.OrthographicCamera, camPosX: number, camPosY: number) {
-    camera.position.setX(camPosX);
-    camera.position.setY(camPosY);
+export function updateToneMappingExposure(threeEnv: ThreeEnv, toneMappingExposure: number) {
+    threeEnv.renderer.toneMappingExposure = toneMappingExposure;
 }
 
-export function updateCameraZoom(camera: THREE.OrthographicCamera, zoom: number) {
-    camera.zoom = Math.pow(Math.E, zoom - 1);
-    camera.updateProjectionMatrix();
-}
-
-export function updateRendererSize(threeEnv: ThreeEnv, height: number, width: number) {
+export function updateRendererSize(threeEnv: ThreeEnv, width: number, height: number) {
     const aspectRatio = width / height;
 
     const camera = threeEnv.camera;
 
-    if (aspectRatio > 1) {
-        camera.left = -aspectRatio;
-        camera.right = aspectRatio;
-        camera.top = 1;
-        camera.bottom = -1;
-    } else {
-        camera.left = -1;
-        camera.right = 1;
-        camera.top = Math.pow(aspectRatio, -1);
-        camera.bottom = -Math.pow(aspectRatio, -1);
+    if (camera instanceof THREE.OrthographicCamera) {
+        if (aspectRatio > 1) {
+            camera.left = -aspectRatio;
+            camera.right = aspectRatio;
+            camera.top = 1;
+            camera.bottom = -1;
+        } else {
+            camera.left = -1;
+            camera.right = 1;
+            camera.top = Math.pow(aspectRatio, -1);
+            camera.bottom = -Math.pow(aspectRatio, -1);
+        }
+
+        camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.PerspectiveCamera) {
+        camera.aspect = aspectRatio;
+        camera.updateProjectionMatrix();
     }
-
-    threeEnv.camera.updateProjectionMatrix();
-
+    threeEnv.renderer.setPixelRatio(window.devicePixelRatio);
     threeEnv.renderer.setSize(width, height);
 
     const renderTargetSize = getRenderTargetSize(threeEnv.renderer);
@@ -90,19 +128,39 @@ export function updateTotalLines(threeEnv: ThreeEnv, totalLines: number) {
     threeEnv.scene.add(threeEnv.lines);
 }
 
-export function updateSamples(threeEnv: ThreeEnv, samples: number) {
-    threeEnv.composer.reset(getRenderTarget(threeEnv.renderer, samples));
+export function updateRenderTarget(
+    threeEnv: Pick<ThreeEnv, "composer" | "renderer">,
+    samples: number,
+    renderTargetType: RenderTargetTypeLabel,
+) {
+    threeEnv.composer.reset(getRenderTarget(threeEnv.renderer, samples, renderTargetType));
 }
 
-function getRenderTargetSize(renderer: THREE.WebGLRenderer) {
-    return renderer.getDrawingBufferSize(new THREE.Vector2());
+export function updateCameraType(
+    threeEnv: Pick<ThreeEnv, "controls" | "renderer" | "camera" | "composer" | "scene">,
+    { cameraType, renderTargetType, samples }: Pick<Input, "cameraType" | "renderTargetType" | "samples">,
+) {
+    threeEnv.controls.dispose();
+    threeEnv.composer.dispose();
+
+    threeEnv.camera = getCamera(cameraType);
+    threeEnv.controls = getControls(threeEnv);
+    threeEnv.composer = getComposer(threeEnv, { renderTargetType, samples });
 }
 
-export function getRenderTarget(renderer: THREE.WebGLRenderer, samples: number) {
-    const renderTargetSize = getRenderTargetSize(renderer);
-    const renderTarget = new THREE.WebGLRenderTarget(renderTargetSize.width, renderTargetSize.height, {
-        format: THREE.RGBAFormat,
-    });
-    renderTarget.samples = samples;
-    return renderTarget;
+export function updateCameraView(threeEnv: ThreeEnv, cameraView: CameraView) {
+    const distance = threeEnv.camera instanceof THREE.OrthographicCamera ? 10 : Math.PI;
+
+    if (cameraView === "top") {
+        threeEnv.controls.position0.set(0, distance, 0);
+    } else if (cameraView === "front") {
+        threeEnv.controls.position0.set(0, 0, distance);
+    } else if (cameraView === "bottom") {
+        threeEnv.controls.position0.set(0, -distance, 0);
+    } else {
+        assertNever(cameraView);
+    }
+    threeEnv.controls.target0.set(0, 0, 0);
+    threeEnv.controls.zoom0 = 1;
+    threeEnv.controls.reset();
 }

@@ -1,28 +1,36 @@
+import GUI from "lil-gui";
+import type {
+    CameraType,
+    CameraView,
+    ColorMethod,
+    Input,
+    RenderTargetTypeLabel,
+    ThreeEnv,
+    ToneMappingLabel,
+    UpdateSource,
+} from "./interfaces";
 import { RenderController } from "./render";
-import { GUI } from "dat.gui";
-import type { ColorMethod, Input, RenderContainer, UpdateSource } from "./interfaces";
 
-export function initGUI(
-    input: Input,
-    renderController: RenderController,
-    renderContainer: RenderContainer,
-    maxSamples: number,
-) {
+const DEBUG = false;
+
+export function initGUI(input: Input, renderController: RenderController, threeEnv: ThreeEnv) {
     const gui = new GUI();
 
-    const totalLines: UpdateSource = "totalLines";
-    const multiplier: UpdateSource = "multiplier";
-    const animate: UpdateSource = "animate";
-    const multiplierIncrement: UpdateSource = "multiplierIncrement";
-    const opacity: UpdateSource = "opacity";
-    const colorMethod: UpdateSource = "colorMethod";
-    const noiseStrength: UpdateSource = "noiseStrength";
-    const samples: UpdateSource = "samples";
-    const camPosX: UpdateSource = "camPosX";
-    const camPosY: UpdateSource = "camPosY";
-    const camZoom: UpdateSource = "camZoom";
-    const resetCamera: UpdateSource = "resetCamera";
+    const totalLines = "totalLines" satisfies UpdateSource;
+    const multiplier = "multiplier" satisfies UpdateSource;
+    const animate = "animate" satisfies UpdateSource;
+    const multiplierIncrement = "multiplierIncrement" satisfies UpdateSource;
+    const opacity = "opacity" satisfies UpdateSource;
+    const colorMethod = "colorMethod" satisfies UpdateSource;
+    const toneMapping = "toneMapping" satisfies UpdateSource;
+    const toneMappingExposure = "toneMappingExposure" satisfies UpdateSource;
+    const renderTargetType = "renderTargetType" satisfies UpdateSource;
+    const samples = "samples" satisfies UpdateSource;
+    const cameraType = "cameraType" satisfies UpdateSource;
+    const cameraView = "cameraView" satisfies UpdateSource;
+    const resetCamera = "resetCamera" satisfies UpdateSource;
 
+    // TODO: rename "Geometry"
     const mathsFolder = gui.addFolder("Maths");
     mathsFolder
         .add(input, totalLines)
@@ -39,7 +47,6 @@ export function initGUI(
     }
 
     multiplierController.onChange(() => renderController.requestRender(multiplier, postRenderCallback));
-    mathsFolder.open();
 
     const animationFolder = gui.addFolder("Animation");
     animationFolder.add(input, animate).onChange(() => renderController.requestRender(animate, postRenderCallback));
@@ -48,8 +55,7 @@ export function initGUI(
         .min(-1)
         .max(1)
         .step(0.001)
-        .onChange(() => renderController.requestRender(multiplierIncrement));
-    animationFolder.open();
+        .onChange(() => renderController.requestRender(multiplierIncrement, postRenderCallback));
 
     const colorFolder = gui.addFolder("Color");
     colorFolder
@@ -58,49 +64,43 @@ export function initGUI(
         .onChange(() => renderController.requestRender(opacity));
     const colorMethods: ColorMethod[] = ["solid", "faded", "lengthOpacity", "lengthHue", "indexHue", "fadedIndexHue"];
     colorFolder.add(input, colorMethod, colorMethods).onChange(() => renderController.requestRender(colorMethod));
-    colorFolder.open();
 
     const renderFolder = gui.addFolder("Render");
+    !DEBUG && renderFolder.close();
     renderFolder
-        .add(input, noiseStrength, 0, 255)
-        .step(0.5)
-        .onChange(() => renderController.requestRender(noiseStrength));
-    renderFolder
-        .add(input, samples, 1, maxSamples)
+        .add(input, samples, 0, threeEnv.renderer.capabilities.maxSamples)
         .step(1)
         .onChange(() => renderController.requestRender(samples));
-    renderFolder.open();
+    renderFolder
+        .add(input, toneMapping, [
+            "No",
+            "Linear",
+            "Reinhard",
+            "Cineon",
+            "ACESFilmic",
+            "AgX",
+            "Neutral",
+        ] satisfies ToneMappingLabel[])
+        .onChange(() => renderController.requestRender(toneMapping));
+    renderFolder
+        .add(input, toneMappingExposure, 0, 2)
+        .onChange(() => renderController.requestRender(toneMappingExposure));
+    renderFolder
+        .add(input, renderTargetType, ["UnsignedByte", "HalfFloat", "Float"] satisfies RenderTargetTypeLabel[])
+        .onChange(() => renderController.requestRender(renderTargetType));
 
     const cameraFolder = gui.addFolder("Camera");
-    const camPosXController = cameraFolder.add(input, camPosX, -1, 1).step(1e-6);
-    camPosXController.onChange(() => renderController.requestRender(camPosX));
-    const camPosYController = cameraFolder.add(input, camPosY, -1, 1).step(1e-6);
-    camPosYController.onChange(() => renderController.requestRender(camPosY));
-    const camZoomController = cameraFolder.add(input, camZoom, 1).step(0.01);
-    camZoomController.onChange(() => renderController.requestRender(camZoom));
+    !DEBUG && cameraFolder.close();
+    cameraFolder
+        .add(input, cameraType, ["Orthographic", "Perspective"] satisfies CameraType[])
+        .onChange(() => renderController.requestRender(cameraType));
+    cameraFolder
+        .add(input, cameraView, ["top", "front", "bottom"] satisfies CameraView[])
+        .onChange(() => renderController.requestRender(cameraView));
+
     cameraFolder.add(input, resetCamera).onChange(() => {
-        camPosXController.setValue(0);
-        camPosYController.setValue(0);
-        camZoomController.setValue(1);
-    });
-    cameraFolder.open();
-
-    renderContainer.addEventListener("wheel", (e: WheelEvent) => {
-        if (e.shiftKey) {
-            camZoomController.setValue(input.camZoom - e.deltaY / 1000);
-        }
+        renderController.requestRender(resetCamera);
     });
 
-    renderContainer.addEventListener("mousemove", (e: MouseEvent) => {
-        if (e.buttons === 1 && e.shiftKey) {
-            const circleDiameterPx = Math.min(renderContainer.clientHeight, renderContainer.clientWidth);
-
-            const realZoom = Math.pow(Math.E, input.camZoom - 1);
-
-            const movementFactor = (realZoom * circleDiameterPx) / 2;
-
-            camPosXController.setValue(input.camPosX - e.movementX / movementFactor);
-            camPosYController.setValue(input.camPosY + e.movementY / movementFactor);
-        }
-    });
+    window.addEventListener("resize", () => renderController.requestRender("resize"));
 }

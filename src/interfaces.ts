@@ -1,9 +1,7 @@
 import * as THREE from "three";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.ts";
+import type { EffectComposer, MapControls } from "three/addons";
 
-export type ColorMethod = "solid" | "faded" | "lengthOpacity" | "lengthHue" | "indexHue" | "fadedIndexHue";
-
-export type UpdateSource = keyof Input | "init" | "resize";
+export type UpdateSource = keyof Input | "resize" | "controls";
 
 export type RenderContainer = HTMLElement;
 
@@ -12,7 +10,6 @@ export interface LineMaterialUniforms {
     total: { value: number };
     opacity: { value: number };
     colorMethod: { value: number };
-    noiseStrength: { value: number };
 }
 
 export type LineMaterial = THREE.ShaderMaterial & {
@@ -22,23 +19,33 @@ export type LineMaterial = THREE.ShaderMaterial & {
 export interface ThreeEnv {
     renderer: THREE.WebGLRenderer;
     readonly scene: THREE.Scene;
-    readonly camera: THREE.OrthographicCamera;
+    camera: THREE.Camera;
+    controls: MapControls;
     readonly material: LineMaterial;
     lines: THREE.LineSegments;
     composer: EffectComposer;
 }
 
+export type ColorMethod = "solid" | "faded" | "lengthOpacity" | "lengthHue" | "indexHue" | "fadedIndexHue";
+export type ToneMappingLabel = "No" | "Linear" | "Reinhard" | "Cineon" | "ACESFilmic" | "AgX" | "Neutral";
+export type RenderTargetTypeLabel = "UnsignedByte" | "HalfFloat" | "Float";
+
+export type CameraType = "Orthographic" | "Perspective";
+export type CameraView = "top" | "front" | "bottom";
+
 export interface Input {
     totalLines: number;
     multiplier: number;
+    // TODO: height
     animate: boolean;
     multiplierIncrement: number;
     opacity: number;
     colorMethod: ColorMethod;
-    noiseStrength: number;
     samples: number;
-    camPosX: number;
-    camPosY: number;
-    camZoom: number;
+    toneMapping: ToneMappingLabel;
+    toneMappingExposure: number;
+    renderTargetType: RenderTargetTypeLabel;
+    cameraType: CameraType;
+    cameraView: CameraView;
     resetCamera: () => void;
 }
