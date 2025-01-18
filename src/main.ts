@@ -1,5 +1,5 @@
-import fragmentShader from "../res/shaders/fragmentShader.glsl";
-import vertexShader from "../res/shaders/vertexShader.glsl";
+import fragmentShader from "./glsl/lines.frag";
+import vertexShader from "./glsl/lines.vert";
 import "../res/style/index.css";
 import * as THREE from "three";
 import { EffectComposer, MapControls, OutputPass, RenderPass } from "three/addons";

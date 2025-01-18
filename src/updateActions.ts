@@ -8,7 +8,7 @@ import {
     getLines,
     getRenderTarget,
     getRenderTargetSize,
-} from "./index";
+} from "./main";
 import type {
     CameraView,
     ColorMethod,

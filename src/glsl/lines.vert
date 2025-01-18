@@ -2,9 +2,9 @@ uniform float multiplier;
 uniform float total;
 uniform int colorMethod;
 
-varying vec3 vColor;
-varying float vLinePosition;
-varying float vIndex;
+out vec3 vColor;
+out float vLinePosition;
+out float vIndex;
 
 #define PI 3.1415926535897932384626433832795
 
