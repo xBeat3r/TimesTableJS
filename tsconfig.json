@@ -22,5 +22,5 @@
         "target": "esnext",
         "lib": ["dom", "dom.iterable", "esnext"]
     },
-    "include": ["src/**/*", "eslint.config.mjs", "vite.config.ts"]
+    "include": ["src/**/*", "eslint.config.js", "vite.config.ts"]
 }

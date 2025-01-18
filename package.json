@@ -2,6 +2,7 @@
     "name": "times-tables",
     "version": "0.3.0",
     "description": "Interactive rendering of times tables",
+    "type": "module",
     "main": "main.js",
     "scripts": {
         "dev": "vite",
