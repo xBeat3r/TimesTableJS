@@ -1,26 +1,4 @@
 {
-    "extends": "@tsconfig/strictest/tsconfig.json",
-    "compilerOptions": {
-        // Reference: https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html#im-using-a-bundler
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "esModuleInterop": true,
-
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
-        "allowArbitraryExtensions": true,
-        "verbatimModuleSyntax": true,
-
-        // let eslint handle these
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        // less strict
-        "exactOptionalPropertyTypes": false,
-        "noPropertyAccessFromIndexSignature": false,
-        "noImplicitReturns": false,
-
-        "target": "esnext",
-        "lib": ["dom", "dom.iterable", "esnext"]
-    },
-    "include": ["src/**/*", "eslint.config.js", "vite.config.ts"]
+    "files": [],
+    "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
 }

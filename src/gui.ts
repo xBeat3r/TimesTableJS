@@ -66,7 +66,9 @@ export function initGUI(input: Input, renderController: RenderController, threeE
     colorFolder.add(input, colorMethod, colorMethods).onChange(() => renderController.requestRender(colorMethod));
 
     const renderFolder = gui.addFolder("Render");
-    !DEBUG && renderFolder.close();
+    if (!DEBUG) {
+        renderFolder.close();
+    }
     renderFolder
         .add(input, samples, 0, threeEnv.renderer.capabilities.maxSamples)
         .step(1)
@@ -90,7 +92,9 @@ export function initGUI(input: Input, renderController: RenderController, threeE
         .onChange(() => renderController.requestRender(renderTargetType));
 
     const cameraFolder = gui.addFolder("Camera");
-    !DEBUG && cameraFolder.close();
+    if (!DEBUG) {
+        cameraFolder.close();
+    }
     cameraFolder
         .add(input, cameraType, ["Orthographic", "Perspective"] satisfies CameraType[])
         .onChange(() => renderController.requestRender(cameraType));

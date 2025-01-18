@@ -1,0 +1,25 @@
+{
+    "extends": "@tsconfig/strictest/tsconfig.json",
+    "compilerOptions": {
+        "module": "ESNext",
+        "skipLibCheck": true,
+
+        // Bundler mode
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        "verbatimModuleSyntax": true,
+
+        // let eslint handle these
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noUncheckedSideEffectImports": true,
+
+        // less strict
+        "exactOptionalPropertyTypes": false,
+        "noPropertyAccessFromIndexSignature": false,
+        "noImplicitReturns": false
+    }
+}

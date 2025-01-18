@@ -11,8 +11,10 @@
         "build:dev": "vite build --mode development",
         "preview": "vite preview",
         "lint": "npm run lint:tsc && npm run lint:eslint && npm run lint:prettier",
-        "lint:tsc": "tsc",
-        "lint:eslint": "eslint",
+        "lint:tsc": "tsc -b",
+        "lint:tsc:watch": "npm run lint:tsc -- --watch",
+        "lint:eslint": "eslint --max-warnings 0",
+        "lint:eslint:fix": "eslint --fix",
         "lint:prettier": "prettier --check .",
         "lint:prettier:fix": "prettier --write ."
     },
@@ -28,11 +30,15 @@
         "three": "0.172.0"
     },
     "devDependencies": {
+        "@eslint/js": "^9.18.0",
         "@tsconfig/strictest": "^2.0.5",
         "@types/eslint__js": "^8.42.3",
         "@types/three": "0.172.0",
         "@vitejs/plugin-react-swc": "^3.7.2",
         "eslint": "^9.18.0",
+        "eslint-plugin-react": "^7.37.4",
+        "eslint-plugin-react-hooks": "^5.1.0",
+        "eslint-plugin-react-refresh": "^0.4.18",
         "prettier": "^3.4.2",
         "rimraf": "^6.0.1",
         "typescript": "^5.7.3",
