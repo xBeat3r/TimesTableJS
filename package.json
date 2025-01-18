@@ -1,5 +1,5 @@
 {
-    "name": "times-table-js",
+    "name": "times-tables",
     "version": "0.3.0",
     "description": "Interactive rendering of times tables",
     "main": "main.js",
