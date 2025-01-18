@@ -5,18 +5,18 @@ export type UpdateSource = keyof Input | "resize" | "controls";
 
 export type RenderContainer = HTMLElement;
 
-export interface LineMaterialUniforms {
+export type LineMaterialUniforms = {
     multiplier: { value: number };
     total: { value: number };
     opacity: { value: number };
     colorMethod: { value: number };
-}
+};
 
 export type LineMaterial = THREE.ShaderMaterial & {
     uniforms: LineMaterialUniforms;
 };
 
-export interface ThreeEnv {
+export type ThreeEnv = {
     renderer: THREE.WebGLRenderer;
     readonly scene: THREE.Scene;
     camera: THREE.Camera;
@@ -24,7 +24,7 @@ export interface ThreeEnv {
     readonly material: LineMaterial;
     lines: THREE.LineSegments;
     composer: EffectComposer;
-}
+};
 
 export type ColorMethod = "solid" | "faded" | "lengthOpacity" | "lengthHue" | "indexHue" | "fadedIndexHue";
 export type ToneMappingLabel = "No" | "Linear" | "Reinhard" | "Cineon" | "ACESFilmic" | "AgX" | "Neutral";
@@ -33,7 +33,7 @@ export type RenderTargetTypeLabel = "UnsignedByte" | "HalfFloat" | "Float";
 export type CameraType = "Orthographic" | "Perspective";
 export type CameraView = "top" | "front" | "bottom";
 
-export interface Input {
+export type Input = {
     totalLines: number;
     multiplier: number;
     // TODO: height
@@ -48,4 +48,4 @@ export interface Input {
     cameraType: CameraType;
     cameraView: CameraView;
     resetCamera: () => void;
-}
+};
