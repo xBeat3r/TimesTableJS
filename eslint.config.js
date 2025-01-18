@@ -69,6 +69,7 @@ export default tseslint.config(
                     message: `Instead use: import * as _ from "lodash-es";`,
                 },
             ],
+            "react/no-unknown-property": "off",
         },
     },
 );
