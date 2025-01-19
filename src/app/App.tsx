@@ -5,7 +5,11 @@ import "./style/index.css";
 export function App() {
     return (
         <div id="canvas-container">
-            <Canvas>
+            <Canvas
+                frameloop="always"
+                // TODO:
+                //  frameloop="demand"
+            >
                 <Scene />
             </Canvas>
         </div>

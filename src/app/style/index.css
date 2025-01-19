@@ -1,12 +1,18 @@
-canvas {
-    display: block;
-}
-body {
-    margin: 0;
-    overflow: hidden;
+* {
+    box-sizing: border-box;
 }
 
-#render-container {
+html,
+body,
+#root,
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+#canvas-container {
     user-select: none;
     cursor: default;
 }
